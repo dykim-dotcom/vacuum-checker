@@ -268,9 +268,9 @@
 
   <!-- 검색 카드 -->
   <div class="card">
-    <div class="card-title">🔍 모델명으로 검색</div>
+    <div class="card-title">🔍 모델명 또는 시리즈로 검색</div>
     <div class="search-row">
-      <input type="text" id="searchInput" placeholder="예: VS20T9258, A9K-ULTRA" autocomplete="off">
+      <input type="text" id="searchInput" placeholder="예: VS20A957, 비스포크 제트, A9 AI" autocomplete="off">
       <div class="dropdown" id="dropdown"></div>
       <button class="btn-check" onclick="doSearch()">확인</button>
     </div>
@@ -303,7 +303,7 @@
   <div class="notice">
     찾으시는 모델이 없으신가요?<br>
     <!-- ★ 고객센터 연락처를 아래에 입력하세요 -->
-    고객센터 000-0000으로 문의해 주세요.
+    고객센터 1877-3427로 문의해 주세요.
   </div>
 
   <div class="btn-close-wrap">
@@ -401,13 +401,15 @@
     resultBox.style.display = 'none';
     if (q.length < 2) { dropdown.style.display = 'none'; return; }
 
-    const matched = MODELS.filter(m => m.model.toUpperCase().includes(q));
+    const matched = MODELS.filter(m =>
+      m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
+    );
     if (!matched.length) { dropdown.style.display = 'none'; return; }
 
     dropdown.innerHTML = matched.map(m =>
       `<div class="dropdown-item" onclick="pickModel('${m.model}')">
         <div class="dropdown-model">${hl(m.model, q)}</div>
-        <div class="dropdown-sub">${BRAND[m.brand]} · ${m.series}</div>
+        <div class="dropdown-sub">${BRAND[m.brand]} · ${hl(m.series, q)}</div>
       </div>`
     ).join('');
     dropdown.style.display = 'block';
@@ -435,7 +437,9 @@
 
     let found = MODELS.find(m => m.model.toUpperCase() === q);
     if (!found) {
-      const partial = MODELS.filter(m => m.model.toUpperCase().includes(q));
+      const partial = MODELS.filter(m =>
+        m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
+      );
       if (partial.length === 1) found = partial[0];
     }
 
