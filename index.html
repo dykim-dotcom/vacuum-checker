@@ -390,6 +390,13 @@
   // ============================================================
 
   const BRAND = { samsung: '삼성', lg: 'LG' };
+
+  // 공백 제거 후 비교 (띄어쓰기 없이 검색 가능)
+  function normalize(str) { return str.toUpperCase().replace(/\s/g, ''); }
+  function matchQuery(m, q) {
+    const nq = normalize(q);
+    return normalize(m.model).includes(nq) || normalize(m.series).includes(nq);
+  }
   const input = document.getElementById('searchInput');
   const dropdown = document.getElementById('dropdown');
   const resultBox = document.getElementById('resultBox');
@@ -401,9 +408,7 @@
     resultBox.style.display = 'none';
     if (q.length < 2) { dropdown.style.display = 'none'; return; }
 
-    const matched = MODELS.filter(m =>
-      m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
-    );
+    const matched = MODELS.filter(m => matchQuery(m, q));
     if (!matched.length) { dropdown.style.display = 'none'; return; }
 
     dropdown.innerHTML = matched.map(m =>
@@ -436,16 +441,14 @@
     if (!q) { resultBox.style.display = 'none'; return; }
 
     // 정확히 일치하는 모델명 우선
-    let exact = MODELS.find(m => m.model.toUpperCase() === q);
+    let exact = MODELS.find(m => normalize(m.model) === normalize(q));
     if (exact) {
       show('ok', '✅ 호환 가능한 모델입니다', `${BRAND[exact.brand]} ${exact.model} (${exact.series})`);
       return;
     }
 
     // 모델명 또는 시리즈명 포함 검색
-    const partial = MODELS.filter(m =>
-      m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
-    );
+    const partial = MODELS.filter(m => matchQuery(m, q));
 
     if (!partial.length) {
       show('ng', '❌ 호환되지 않는 모델입니다', '목록에 없는 모델이거나 호환되지 않습니다. 정확한 모델명을 확인해 주세요.');
