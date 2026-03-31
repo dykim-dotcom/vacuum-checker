@@ -435,18 +435,29 @@
     const q = input.value.trim().toUpperCase();
     if (!q) { resultBox.style.display = 'none'; return; }
 
-    let found = MODELS.find(m => m.model.toUpperCase() === q);
-    if (!found) {
-      const partial = MODELS.filter(m =>
-        m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
-      );
-      if (partial.length === 1) found = partial[0];
+    // 정확히 일치하는 모델명 우선
+    let exact = MODELS.find(m => m.model.toUpperCase() === q);
+    if (exact) {
+      show('ok', '✅ 호환 가능한 모델입니다', `${BRAND[exact.brand]} ${exact.model} (${exact.series})`);
+      return;
     }
 
-    if (!found) {
+    // 모델명 또는 시리즈명 포함 검색
+    const partial = MODELS.filter(m =>
+      m.model.toUpperCase().includes(q) || m.series.toUpperCase().includes(q)
+    );
+
+    if (!partial.length) {
       show('ng', '❌ 호환되지 않는 모델입니다', '목록에 없는 모델이거나 호환되지 않습니다. 정확한 모델명을 확인해 주세요.');
+    } else if (partial.length === 1) {
+      show('ok', '✅ 호환 가능한 모델입니다', `${BRAND[partial[0].brand]} ${partial[0].model} (${partial[0].series})`);
     } else {
-      show('ok', '✅ 호환 가능한 모델입니다', `${BRAND[found.brand]} ${found.model} (${found.series})`);
+      // 여러 모델 매칭 (시리즈 검색)
+      const seriesName = partial[0].series;
+      const allSameSeries = partial.every(m => m.series === seriesName);
+      const label = allSameSeries ? seriesName : '검색된 시리즈';
+      const modelList = partial.map(m => m.model).join(', ');
+      show('ok', `✅ 호환 가능한 시리즈입니다`, `${BRAND[partial[0].brand]} ${label}<br><span style="font-size:11px;opacity:0.7">${modelList}</span>`);
     }
   }
 
