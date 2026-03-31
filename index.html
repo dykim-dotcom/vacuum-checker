@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>청소기 헤드 호환 모델 확인</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: #f7f7f7;
+      min-height: 100vh;
+    }
+
+    /* 상단 헤더 */
+    .page-header {
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 20px 16px 18px;
+    }
+
+    .page-header .logo {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: #bbb;
+      margin-top: 5px;
+    }
+
+    /* 컨텐츠 영역 */
+    .page-body {
+      max-width: 560px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+
+    /* 검색 카드 */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 20px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 14px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 8px;
+      position: relative;
+    }
+
+    .search-row input {
+      flex: 1;
+      padding: 13px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .search-row input:focus { border-color: #111; }
+    .search-row input::placeholder { color: #bbb; font-size: 14px; }
+
+    .btn-check {
+      padding: 0 20px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-check:hover { background: #333; }
+    .btn-check:active { background: #000; }
+
+    /* 드롭다운 */
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 72px;
+      background: #fff;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .dropdown-item {
+      padding: 11px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: #f7f7f7; }
+
+    .dropdown-model { font-size: 14px; font-weight: 600; color: #222; }
+    .dropdown-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .hl { background: #fff3cd; border-radius: 2px; }
+
+    /* 결과 */
+    .result-box {
+      display: none;
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .result-box.ok {
+      background: #f0faf2;
+      border: 1.5px solid #4caf50;
+      color: #2e7d32;
+    }
+
+    .result-box.ng {
+      background: #fdf3f3;
+      border: 1.5px solid #e57373;
+      color: #c62828;
+    }
+
+    .result-main { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .result-sub { font-size: 12px; opacity: 0.75; }
+
+    /* 호환 모델 리스트 카드 */
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .brand-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .brand-tab {
+      padding: 4px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #888;
+      background: #fff;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .brand-tab.on {
+      border-color: #111;
+      color: #111;
+      font-weight: 700;
+      background: #f0f0f0;
+    }
+
+    .model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .model-table th {
+      background: #fafafa;
+      padding: 8px 10px;
+      text-align: left;
+      color: #999;
+      font-weight: 600;
+      border-bottom: 1.5px solid #ececec;
+    }
+
+    .model-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #f5f5f5;
+      color: #333;
+    }
+
+    .model-table tr:last-child td { border-bottom: none; }
+
+    .ok-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 24px;
+      color: #ccc;
+      font-size: 13px;
+    }
+
+    /* 안내 */
+    .notice {
+      font-size: 12px;
+      color: #bbb;
+      text-align: center;
+      margin-top: 20px;
+      line-height: 1.8;
+    }
+
+    /* 닫기 버튼 */
+    .btn-close-wrap {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .btn-close {
+      display: inline-block;
+      padding: 11px 28px;
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #777;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .btn-close:hover { background: #f5f5f5; color: #333; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <!-- ★ 상호/브랜드명을 아래에 입력하세요 -->
+  <div class="logo">브랜드명</div>
+  <h1>청소기 헤드 호환 확인</h1>
+  <p>내 청소기 모델을 검색해 보세요</p>
+</div>
+
+<div class="page-body">
+
+  <!-- 검색 카드 -->
+  <div class="card">
+    <div class="card-title">🔍 모델명으로 검색</div>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="예: VS20T9258, A9K-ULTRA" autocomplete="off">
+      <div class="dropdown" id="dropdown"></div>
+      <button class="btn-check" onclick="doSearch()">확인</button>
+    </div>
+    <div class="result-box" id="resultBox"></div>
+  </div>
+
+  <!-- 호환 모델 리스트 카드 -->
+  <div class="card">
+    <div class="list-header">
+      <div class="card-title" style="margin-bottom:0">✅ 호환 가능 모델 전체 목록</div>
+      <div class="brand-tabs">
+        <button class="brand-tab on" onclick="filterBrand('all',this)">전체</button>
+        <button class="brand-tab" onclick="filterBrand('samsung',this)">삼성</button>
+        <button class="brand-tab" onclick="filterBrand('lg',this)">LG</button>
+      </div>
+    </div>
+    <table class="model-table">
+      <thead>
+        <tr>
+          <th>브랜드</th>
+          <th>모델명</th>
+          <th>시리즈</th>
+          <th>호환</th>
+        </tr>
+      </thead>
+      <tbody id="modelBody"></tbody>
+    </table>
+  </div>
+
+  <div class="notice">
+    찾으시는 모델이 없으신가요?<br>
+    <!-- ★ 고객센터 연락처를 아래에 입력하세요 -->
+    고객센터 000-0000으로 문의해 주세요.
+  </div>
+
+  <div class="btn-close-wrap">
+    <button class="btn-close" onclick="window.close()">창 닫기</button>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  //  ★ 호환 모델 목록 — 여기에만 추가하면 됩니다 ★
+  //
+  //  형식: { brand: 'samsung' 또는 'lg', model: '모델명', series: '시리즈명' }
+  //  이 목록에 있는 모델 = 호환 / 없는 모델 = 미호환 자동 처리
+  // ============================================================
+  const MODELS = [
+    // 삼성 예시 (실제 모델로 교체 후 // 제거)
+    // { brand: 'samsung', model: 'VS20T9258TW', series: 'Jet 90' },
+    // { brand: 'samsung', model: 'VS20A95523W', series: 'Bespoke Jet' },
+    // { brand: 'samsung', model: 'VS15T7036R5', series: 'Jet 70' },
+
+    // LG 예시 (실제 모델로 교체 후 // 제거)
+    // { brand: 'lg', model: 'A9K-ULTRA', series: 'CordZero A9' },
+    // { brand: 'lg', model: 'A9T-ULTRA', series: 'CordZero A9' },
+    // { brand: 'lg', model: 'A9DDOORSILVER', series: 'CordZero A9 DUAL' },
+  ];
+  // ============================================================
+
+  const BRAND = { samsung: '삼성', lg: 'LG' };
+  const input = document.getElementById('searchInput');
+  const dropdown = document.getElementById('dropdown');
+  const resultBox = document.getElementById('resultBox');
+
+  renderTable('all');
+
+  input.addEventListener('input', function() {
+    const q = this.value.trim().toUpperCase();
+    resultBox.style.display = 'none';
+    if (q.length < 2) { dropdown.style.display = 'none'; return; }
+
+    const matched = MODELS.filter(m => m.model.toUpperCase().includes(q));
+    if (!matched.length) { dropdown.style.display = 'none'; return; }
+
+    dropdown.innerHTML = matched.map(m =>
+      `<div class="dropdown-item" onclick="pickModel('${m.model}')">
+        <div class="dropdown-model">${hl(m.model, q)}</div>
+        <div class="dropdown-sub">${BRAND[m.brand]} · ${m.series}</div>
+      </div>`
+    ).join('');
+    dropdown.style.display = 'block';
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doSearch();
+    if (e.key === 'Escape') dropdown.style.display = 'none';
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-row')) dropdown.style.display = 'none';
+  });
+
+  function pickModel(model) {
+    input.value = model;
+    dropdown.style.display = 'none';
+    doSearch();
+  }
+
+  function doSearch() {
+    dropdown.style.display = 'none';
+    const q = input.value.trim().toUpperCase();
+    if (!q) { resultBox.style.display = 'none'; return; }
+
+    let found = MODELS.find(m => m.model.toUpperCase() === q);
+    if (!found) {
+      const partial = MODELS.filter(m => m.model.toUpperCase().includes(q));
+      if (partial.length === 1) found = partial[0];
+    }
+
+    if (!found) {
+      show('ng', '❌ 호환되지 않는 모델입니다', '목록에 없는 모델이거나 호환되지 않습니다. 정확한 모델명을 확인해 주세요.');
+    } else {
+      show('ok', '✅ 호환 가능한 모델입니다', `${BRAND[found.brand]} ${found.model} (${found.series})`);
+    }
+  }
+
+  function show(type, main, sub) {
+    resultBox.className = 'result-box ' + type;
+    resultBox.innerHTML = `<div class="result-main">${main}</div><div class="result-sub">${sub}</div>`;
+    resultBox.style.display = 'block';
+  }
+
+  function hl(text, q) {
+    const i = text.toUpperCase().indexOf(q);
+    if (i < 0) return text;
+    return text.slice(0,i) + `<span class="hl">${text.slice(i, i+q.length)}</span>` + text.slice(i+q.length);
+  }
+
+  function filterBrand(brand, el) {
+    document.querySelectorAll('.brand-tab').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+    renderTable(brand);
+  }
+
+  function renderTable(brand) {
+    const list = brand === 'all' ? MODELS : MODELS.filter(m => m.brand === brand);
+    const tbody = document.getElementById('modelBody');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">등록된 호환 모델이 없습니다</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(m =>
+      `<tr>
+        <td>${BRAND[m.brand]}</td>
+        <td><strong>${m.model}</strong></td>
+        <td>${m.series}</td>
+        <td><span class="ok-badge">✓ 호환</span></td>
+      </tr>`
+    ).join('');
+  }
+</script>
+
+</body>
+</html>
